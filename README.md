@@ -1,33 +1,125 @@
 # e_t-caret-diyagram
 
-create database E_TİCARET
-
-create table ORDERS(
-ID int identity(1,1) not null primary key,
-USERID int not null,
-DATETIME_ int not null,
-TOTALPRICE int not null,
-STATUS_ nvarchar(50),
-ADRESSID_ int
+CREATE TABLE Countries (
+    ID INT PRIMARY KEY IDENTITY(1,1),
+    Country NVARCHAR(100) NOT NULL
 );
 
-create table ORDERDETAILS(
-ID int identity(1,1) not null primary key,
-ORDERID int not null,
-ITEMID int not null,
-AMOUNT int not null,
-UNITPRICE varchar(50) not null,
-LINETOTAL varchar(50) not null,
-foreign key (ORDERID) references ORDERS(ID)
+CREATE TABLE Cities (
+    ID INT PRIMARY KEY IDENTITY(1,1),
+    CountryID INT NOT NULL,
+    City NVARCHAR(100) NOT NULL,
+    FOREIGN KEY (CountryID) REFERENCES Countries(ID)
 );
 
-create table ADRESS(
-ID int identity(1,1) not null primary key,
-USERID int not null,
-COUNTRYID int not null,
-CITYID int not null,
-TOWNID int not null,
-DISTRICTID int not null,
-POSTALCODE varchar(50),
-ADRESSTEXT varchar(50)
+CREATE TABLE Towns (
+    ID INT PRIMARY KEY IDENTITY(1,1),
+    CityID INT NOT NULL,
+    Town NVARCHAR(100) NOT NULL,
+    FOREIGN KEY (CityID) REFERENCES Cities(ID)
+);
+
+CREATE TABLE Districts (
+    ID INT PRIMARY KEY IDENTITY(1,1),
+    TownID INT NOT NULL,
+    District NVARCHAR(100) NOT NULL,
+    FOREIGN KEY (TownID) REFERENCES Towns(ID)
+);
+
+CREATE TABLE Users (
+    ID INT PRIMARY KEY IDENTITY(1,1),
+    Username NVARCHAR(50) NOT NULL UNIQUE,
+    Password NVARCHAR(100) NOT NULL,
+    NameSurname NVARCHAR(150),
+    Email NVARCHAR(100) UNIQUE,
+    Gender CHAR(1),
+    BirthDate DATE,
+    CreateDate DATETIME DEFAULT GETDATE(),
+    TelNr1 NVARCHAR(20),
+    TelNr2 NVARCHAR(20)
+);
+
+CREATE TABLE Address (
+    ID INT PRIMARY KEY IDENTITY(1,1),
+    UserID INT NOT NULL,
+    CountryID INT NOT NULL,
+    CityID INT NOT NULL,
+    TownID INT NOT NULL,
+    DistrictID INT NOT NULL,
+    PostalCode NVARCHAR(10),
+    AddressTxt NVARCHAR(255),
+    FOREIGN KEY (UserID) REFERENCES Users(ID),
+    FOREIGN KEY (CountryID) REFERENCES Countries(ID),
+    FOREIGN KEY (CityID) REFERENCES Cities(ID),
+    FOREIGN KEY (TownID) REFERENCES Towns(ID),
+    FOREIGN KEY (DistrictID) REFERENCES Districts(ID)
+);
+
+CREATE TABLE Items (
+    ID INT PRIMARY KEY IDENTITY(1,1),
+    ItemCode NVARCHAR(50) NOT NULL UNIQUE,
+    ItemName NVARCHAR(150) NOT NULL,
+    UnitPrice DECIMAL(18,2) NOT NULL,
+    Category1 NVARCHAR(100),
+    Category2 NVARCHAR(100),
+    Category3 NVARCHAR(100),
+    Category4 NVARCHAR(100),
+    Brand NVARCHAR(100)
+);
+
+CREATE TABLE Orders (
+    ID INT PRIMARY KEY IDENTITY(1,1),
+    UserID INT NOT NULL,
+    Date DATETIME DEFAULT GETDATE(),
+    TotalPrice DECIMAL(18,2),
+    Status NVARCHAR(50),
+    AddressID INT NOT NULL,
+    FOREIGN KEY (UserID) REFERENCES Users(ID),
+    FOREIGN KEY (AddressID) REFERENCES Address(ID)
+);
+
+CREATE TABLE OrderDetails (
+    ID INT PRIMARY KEY IDENTITY(1,1),
+    OrderID INT NOT NULL,
+    ItemID INT NOT NULL,
+    Amount INT NOT NULL,
+    UnitPrice DECIMAL(18,2) NOT NULL,
+    LineTotal DECIMAL(18,2) NOT NULL,
+    FOREIGN KEY (OrderID) REFERENCES Orders(ID),
+    FOREIGN KEY (ItemID) REFERENCES Items(ID)
+);
+
+CREATE TABLE Invoices (
+    ID INT PRIMARY KEY IDENTITY(1,1),
+    OrderID INT NOT NULL,
+    Date DATETIME DEFAULT GETDATE(),
+    AddressID INT NOT NULL,
+    CargoFicheNo NVARCHAR(50),
+    TotalPrice DECIMAL(18,2),
+    FOREIGN KEY (OrderID) REFERENCES Orders(ID),
+    FOREIGN KEY (AddressID) REFERENCES Address(ID)
+);
+
+CREATE TABLE InvoiceDetails (
+    ID INT PRIMARY KEY IDENTITY(1,1),
+    InvoiceID INT NOT NULL,
+    OrderDetailID INT NOT NULL,
+    ItemID INT NOT NULL,
+    Amount INT NOT NULL,
+    UnitPrice DECIMAL(18,2) NOT NULL,
+    LineTotal DECIMAL(18,2) NOT NULL,
+    FOREIGN KEY (InvoiceID) REFERENCES Invoices(ID),
+    FOREIGN KEY (OrderDetailID) REFERENCES OrderDetails(ID),
+    FOREIGN KEY (ItemID) REFERENCES Items(ID)
+);
+
+CREATE TABLE Payments (
+    ID INT PRIMARY KEY IDENTITY(1,1),
+    OrderID INT NOT NULL,
+    PaymentType NVARCHAR(50) NOT NULL,
+    Date DATETIME DEFAULT GETDATE(),
+    IsOK BIT,
+    ApproveCode NVARCHAR(50),
+    PaymentTotal DECIMAL(18,2) NOT NULL,
+    FOREIGN KEY (OrderID) REFERENCES Orders(ID)
 );
